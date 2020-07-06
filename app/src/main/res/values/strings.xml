@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Dhamaal</string>
+    <string name="createNewVideo">Create</string>
+    <string name="search">Search</string>
+    <string name="previous">Previous</string>
+    <string name="hello_home_second">Hello HomeSecondFragment. Arg: %1$s</string>
+    <string name="hello_dashboard_second">Hello HomeSecondFragment. Arg: %1$s</string>
+    <string name="hello_notifications_second">Hello HomeSecondFragment. Arg: %1$s</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+
+    <string name="home_second">Home Second</string>
+
+    <string name="title_activity_video_recording">VideoRecording</string>
+    <string name="sign_out">Sign out</string>
+    <string name="account_settings">Account Settings</string>
+    <string name="switch_camera_button_alt">Switch camera</string>
+    <string name="capture_button_alt">Capture</string>
+</resources>
