@@ -1,31 +1,23 @@
 package com.lotus.dhamaal.fragments
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.os.Build
-import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import android.view.*
 import android.widget.ImageButton
-import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.AppCompatImageButton
-import androidx.camera.core.impl.CameraCaptureResult
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import androidx.camera.core.CameraInfoUnavailableException
 import androidx.fragment.app.Fragment
-
+import androidx.lifecycle.ViewModelProviders
 import com.lotus.dhamaal.R
-import com.lotus.dhamaal.activities.VideoRecording
-import kotlinx.android.synthetic.main.fragment_video_recording.*
-import java.util.*
 
 class VideoRecordingFragment : Fragment() {
 
@@ -33,9 +25,10 @@ class VideoRecordingFragment : Fragment() {
         private val TAG = VideoRecordingFragment::class.qualifiedName
         @JvmStatic fun newInstance() = VideoRecordingFragment()
         private var isRecording: Boolean = false
-        private val MAX_PREVIEW_WIDTH= 1280
-        private  val MAX_PREVIEW_HEIGHT = 720
+        private const val MAX_PREVIEW_WIDTH= 800
+        private  const val MAX_PREVIEW_HEIGHT = 600
     }
+    private lateinit var cameraSwitchButton: ImageButton
     /** [HandlerThread] handler thread to update camera recording to the UI*/
     private lateinit var handlerThread: HandlerThread
     /**[Handler] for mananging [HandlerThread]*/
@@ -60,6 +53,7 @@ class VideoRecordingFragment : Fragment() {
         }
     }
 
+    private var lensCurrentFacing: Int = CameraCharacteristics.LENS_FACING_FRONT
     /** Captures frames from a [CameraDevice] for our video recording */
     private lateinit var session: CameraCaptureSession
 
@@ -72,27 +66,35 @@ class VideoRecordingFragment : Fragment() {
     /**[CameraCaptureSession] to record the video*/
     private lateinit var cameraCaptureSession: CameraCaptureSession
     /** Requests used for preview only in the [CameraCaptureSession] */
-    private val previewRequest: CaptureRequest by lazy {
+    private lateinit var previewRequest: CaptureRequest.Builder
+    private fun createCaptureRequest(): CaptureRequest{
         // Capture request holds references to target surfaces
-        cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW).apply {
+        return cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
             // Add the preview surface target
             addTarget(surface)
+            Log.d(TAG, "surface added to the target and tag ")
             set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_VIDEO)
+            Log.d(TAG, " setting capture request: ${CaptureRequest.CONTROL_AF_MODE} and ${CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_VIDEO}")
         }.build()
+
     }
     private fun previewSession(){
+        Log.d(TAG, "Is surface valid:  ${surface.isValid}")
         cameraDevice.createCaptureSession(
             listOf(surface),
             object:CameraCaptureSession.StateCallback(){
+                @RequiresApi(Build.VERSION_CODES.M)
                 override fun onConfigureFailed(session: CameraCaptureSession) {
-                    Log.e(TAG,"creating capture session failed")
+                    Log.e(TAG,"creating capture session failed\n${session.inputSurface}")
                 }
 
+                @RequiresApi(Build.VERSION_CODES.M)
                 override fun onConfigured(session: CameraCaptureSession) {
-                    Log.d(TAG,"Capture session is configured successfully")
+
+                    Log.d(TAG,"Capture session is configured successfully ${cameraDevice.id}")
                     session.let {
                         cameraCaptureSession= it
-                        it.setRepeatingRequest(previewRequest,null, null)
+                        it.setRepeatingRequest( createCaptureRequest(),null, null)
                     }
                 }
             }, null)
@@ -108,6 +110,7 @@ class VideoRecordingFragment : Fragment() {
             Log.d(TAG,"Camera device is ready to use")
             camera.let {
                 cameraDevice = camera
+                Log.d(TAG,"Camera device is ready to use : ${cameraDevice.id}")
                 previewSession()
             }
         }
@@ -149,6 +152,7 @@ class VideoRecordingFragment : Fragment() {
         var deviceId = listOf<String>()
         try{
             val cameraList  = cameraManager.cameraIdList
+            Log.d(TAG,"Camera id list-> ${cameraList.asList()}")
             deviceId = cameraList.filter { lens == cameraCharacteristics(it,CameraCharacteristics.LENS_FACING )}
         }catch(e: CameraAccessException){
             Log.e(TAG," Unable to locate a camera device\n${e.toString()}")
@@ -156,6 +160,7 @@ class VideoRecordingFragment : Fragment() {
         return deviceId[0]
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     @SuppressLint("MissingPermission")
     private  fun connectCamera(){
         /*Initialize surface before using it*/
@@ -163,9 +168,12 @@ class VideoRecordingFragment : Fragment() {
             setDefaultBufferSize(MAX_PREVIEW_WIDTH, MAX_PREVIEW_HEIGHT)
         }
         surface = Surface(previewTextureView.surfaceTexture)
-         val cameraId =  cameraId(CameraCharacteristics.LENS_FACING_BACK)
-        Log.d(TAG, "camera id for back lens $cameraId")
+        updateCameraSwitchButton()
+        updateCameraUi()
+         val cameraId =  cameraId(lensCurrentFacing)
+        Log.d(TAG, "Current camera id for lens $cameraId")
         try {
+            Log.d(TAG,"handler is alive: ${handler}")
             cameraManager.openCamera(cameraId, deviceStateCallBack, handler)
         }
         catch (e: CameraAccessException){
@@ -191,21 +199,68 @@ class VideoRecordingFragment : Fragment() {
 
         override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean = true
 
+        @RequiresApi(Build.VERSION_CODES.M)
         override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
           Log.d(TAG, "surface texture view is available width: $width and  height $height")
             connectCamera()
         }
 
     }
-    override fun onResume() {
-        super.onResume()
-        startHandler()
+    /** Returns true if the device has an available back camera. False otherwise */
+    private fun hasBackCamera(): Boolean {
+        return cameraManager.cameraIdList.contains(CameraCharacteristics.LENS_FACING_BACK.toString())
+    }
+
+    /** Returns true if the device has an available front camera. False otherwise */
+    private fun hasFrontCamera(): Boolean {
+        return cameraManager.cameraIdList.contains(CameraCharacteristics.LENS_FACING_FRONT.toString())
+    }
+
+    /** Enabled or disabled a button to switch cameras depending on the available cameras */
+    private fun updateCameraSwitchButton() {
+        try {
+            cameraSwitchButton.isEnabled = hasBackCamera() && hasFrontCamera()
+            Log.d(TAG, "updating camera switch button to ${cameraSwitchButton.isEnabled}")
+        } catch (exception: CameraInfoUnavailableException) {
+            cameraSwitchButton.isEnabled = false
+        }
+    }
+    /** Method used to re-draw the camera UI controls, called every time configuration changes. */
+    @RequiresApi(Build.VERSION_CODES.M)
+    private fun updateCameraUi() {
+        // Setup for button used to switch cameras
+        cameraSwitchButton.let {
+
+            // Listener for button used to switch cameras. Only called if the button is enabled
+            it.setOnClickListener {
+                lensCurrentFacing = if (CameraCharacteristics.LENS_FACING_FRONT == lensCurrentFacing) {
+                    CameraCharacteristics.LENS_FACING_BACK
+                } else {
+                    CameraCharacteristics.LENS_FACING_FRONT
+                }
+                Log.d(TAG, "setting lens_facing to $lensCurrentFacing")
+                closeCamera()
+                // Re-bind use cases to update selected camera
+                setPreviewTextureView()
+            }
+        }
+    }
+    @RequiresApi(Build.VERSION_CODES.M)
+    private fun setPreviewTextureView(){
+        Log.d(TAG,"on resume Texture view is avaialble : ${previewTextureView.isAvailable}")
         if(previewTextureView.isAvailable){
             connectCamera()
         }else {
             previewTextureView.surfaceTextureListener = surfaceListener
-            Log.d(TAG,"on resume surface listner avaialble")
+
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    override fun onResume() {
+        super.onResume()
+        startHandler()
+        setPreviewTextureView()
     }
 
     override fun onPause() {
@@ -221,6 +276,7 @@ class VideoRecordingFragment : Fragment() {
         previewTextureView = view.findViewById(R.id.previewTextureView)
         captureButton = view.findViewById(R.id.camera_capture_button)
         captureButton.isClickable =true
+        cameraSwitchButton = view.findViewById<ImageButton>(R.id.camera_switch_button)
         return view
     }
 
@@ -236,5 +292,24 @@ class VideoRecordingFragment : Fragment() {
          View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
                 View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+    }
+
+
+    /**
+     * Inflate camera controls and update the UI manually upon config changes to avoid removing
+     * and re-adding the view finder from the view hierarchy; this provides a seamless rotation
+     * transition on devices that support it.
+     *
+     * NOTE: The flag is supported starting in Android 8 but there still is a small flash on the
+     * screen for devices that run Android 9 or below.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+        // Redraw the camera UI controls
+        updateCameraUi()
+
+        // Enable or disable switching between cameras
+        updateCameraSwitchButton()
     }
 }

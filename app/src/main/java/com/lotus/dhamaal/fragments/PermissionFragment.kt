@@ -20,7 +20,7 @@ import com.lotus.dhamaal.activities.MainActivity
 /**
  * A simple [Fragment] subclass.
  */
-class PermissionFragment : Fragment() {
+class PermissionFragment() : Fragment() {
    companion object{
        private val TAG = PermissionFragment::class.qualifiedName
        private const val REQUEST_CODE_PERMISSIONS = 10
