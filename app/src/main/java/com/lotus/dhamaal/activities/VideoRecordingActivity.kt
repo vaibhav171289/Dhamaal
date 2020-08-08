@@ -28,7 +28,6 @@ private const val IMMERSIVE_FLAG_TIMEOUT = 500L
 class VideoRecording : AppCompatActivity() {
     private val TAG = "VideoRecording"
     private lateinit var container: FrameLayout
-    private lateinit var videoRecordingViewModel: VideoRecordingViewModel
     private var mediaRecorder: MediaRecorder? = null
     private val permissionFragment = PermissionFragment()
 
@@ -127,25 +126,6 @@ class VideoRecording : AppCompatActivity() {
         finish()
     }
 
-    private fun startRecording() {
-        Log.d(TAG, " is recording started $isRecording")
-        isRecording = if (isRecording) {
-            mediaRecorder!!.stop() // stop the recording
-            releaseMediaRecorder() // release the MediaRecorder object
-            Toast.makeText(this, "Video captured!", Toast.LENGTH_LONG).show()
-            false
-        } else {
-//            val recordVideo = RecordVideo(this, mediaRecorder!!)
-//            setContentView(previewView)
-            mediaRecorder = prepareMediaRecorder()
-            runOnUiThread {
-                mediaRecorder!!.start()
-            }
-            true
-        }
-
-    }
-
     private fun releaseMediaRecorder() {
         mediaRecorder.let {
             it?.reset()
@@ -167,26 +147,7 @@ class VideoRecording : AppCompatActivity() {
     }
 
     companion object {
-        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
-        private const val REQUEST_CODE_PERMISSIONS = 10
-        private val REQUIRED_PERMISSIONS = arrayOf(
-            Manifest.permission.CAMERA,
-            Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.INTERNET
-        )
-        private var isRecording: Boolean = false
         public lateinit var videoUri: Uri
         private const val VIDEO_CAPTURE = 101
-        /**
-        Use external media if it is available, our app's file directory otherwise */
-        fun getOutputDirectory(context: Context): File {
-            val appContext = context.applicationContext
-            val mediaDir = context.externalMediaDirs.firstOrNull()?.let {
-                File(it, appContext.resources.getString(R.string.app_name)).apply { mkdirs() }
-            }
-            return if (mediaDir != null && mediaDir.exists())
-                mediaDir else appContext.filesDir
-        }
     }
 }

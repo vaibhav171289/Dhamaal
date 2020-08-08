@@ -43,4 +43,10 @@
             android:layout_marginEnd="10dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
+    <Chronometer android:layout_width="@dimen/rect_button_width"
+                 android:layout_height="@dimen/rect_button_height"
+                 android:id="@+id/chronometer1"
+                 app:layout_constraintStart_toStartOf="parent"
+                 app:layout_constraintBottom_toBottomOf="parent" android:layout_marginBottom="64dp"
+                 android:layout_marginStart="24dp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
