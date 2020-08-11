@@ -441,7 +441,8 @@ class VideoRecordingFragment : Fragment() {
     private fun replaceFragment(fragment: Fragment){
         val transaction = requireActivity().supportFragmentManager.beginTransaction()
         transaction.replace(R.id.fragment_video_container, fragment)
-        transaction.addToBackStack(fragment::class.qualifiedName)
+//        transaction.addToBackStack(fragment::class.qualifiedName)
+        transaction.addToBackStack(null)
         transaction.commit()
     }
     @RequiresApi(Build.VERSION_CODES.M)
@@ -466,7 +467,7 @@ class VideoRecordingFragment : Fragment() {
         chronometer =  view.findViewById(R.id.chronometer1)
         captureButton = view.findViewById(R.id.camera_capture_button)
         captureButton.isClickable =true
-        playbackVideo =  view.findViewById(R.id.playback_video)
+        playbackVideo =  view.findViewById(R.id.process_video)
         playbackVideo.isClickable = false
         cameraSwitchButton = view.findViewById<ImageButton>(R.id.camera_switch_button)
         captureButton.setOnClickListener {

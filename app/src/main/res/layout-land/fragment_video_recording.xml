@@ -35,7 +35,7 @@
             android:contentDescription="@string/capture_button_alt"
             app:layout_constraintHorizontal_bias="0.498"/>
     <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/playback_video" android:layout_width="@dimen/round_button_medium"
+            android:id="@+id/process_video" android:layout_width="@dimen/round_button_medium"
             android:layout_height="@dimen/round_button_medium"
             android:src="@drawable/round_check_circle_24"
             android:layout_marginBottom="@dimen/margin_medium"

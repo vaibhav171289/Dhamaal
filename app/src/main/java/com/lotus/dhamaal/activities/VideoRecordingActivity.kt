@@ -62,7 +62,6 @@ class VideoRecording : AppCompatActivity() {
     }
 
     companion object {
-        public lateinit var videoUri: Uri
         private const val VIDEO_CAPTURE = 101
     }
 }
