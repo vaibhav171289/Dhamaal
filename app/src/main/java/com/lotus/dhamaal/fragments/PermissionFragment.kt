@@ -23,6 +23,7 @@ import com.lotus.dhamaal.activities.MainActivity
 class PermissionFragment() : Fragment() {
    companion object{
        private val TAG = PermissionFragment::class.qualifiedName
+       fun newInstance() = PermissionFragment()
        private const val REQUEST_CODE_PERMISSIONS = 10
        /** Permissions for using the device hardware*/
        private val REQUIRED_PERMISSIONS = arrayOf(
@@ -32,7 +33,7 @@ class PermissionFragment() : Fragment() {
            Manifest.permission.INTERNET
        )
    }
-    private  val videoRecordingFragment = VideoRecordingFragment()
+    private  val videoRecordingFragment = VideoRecordingFragment.newInstance()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Request camera permissions
@@ -65,6 +66,7 @@ class PermissionFragment() : Fragment() {
                 Log.d(TAG, "Permissions granted successfully")
                 activity?.let {  val transaction =it.supportFragmentManager.beginTransaction()
                     transaction.add(R.id.fragment_video_container, videoRecordingFragment)
+                    transaction.addToBackStack(null)
                     transaction.commit()  }
 
             } else {

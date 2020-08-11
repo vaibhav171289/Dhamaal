@@ -6,6 +6,7 @@ import android.content.res.Configuration
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.media.MediaRecorder
+import android.net.Uri
 import android.os.*
 import android.util.Log
 import android.util.SparseArray
@@ -17,6 +18,8 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.camera.core.CameraInfoUnavailableException
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import com.lotus.dhamaal.R
 import java.io.File
 import java.io.IOException
@@ -24,11 +27,14 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class VideoRecordingFragment : Fragment() {
-
+    private  val videoRecordingViewModel: VideoRecordingViewModel by activityViewModels()
+    /*private val videoRecordingViewModel: VideoRecordingViewModel by lazy{
+        ViewModelProvider(this).get(VideoRecordingViewModel::class.java)
+    }*/
     companion object {
         private val TAG = VideoRecordingFragment::class.qualifiedName
         @JvmStatic fun newInstance() = VideoRecordingFragment()
-        private var isRecording: Boolean = false
+        var isRecording: Boolean = false
         private const val MAX_PREVIEW_WIDTH= 1920
         private  const val MAX_PREVIEW_HEIGHT =  1080
         private const val SENSOR_DEFAULT_ORIENTATION_DEGREES = 90
@@ -70,7 +76,6 @@ class VideoRecordingFragment : Fragment() {
         Log.d(TAG, "saved video path : $videoFilePath ")
         return videoFile
     }
-    private lateinit var videoRecordingViewModel: VideoRecordingViewModel
     /**[MediaRecorder]*/
     private var mediaRecorder: MediaRecorder? = null
     private lateinit var cameraSwitchButton: ImageButton
@@ -261,7 +266,8 @@ class VideoRecordingFragment : Fragment() {
             setVideoSource(MediaRecorder.VideoSource.SURFACE)
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-            setOutputFile(createVideoFile())
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+               setOutputFile(createVideoFile())
             setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
             //if poor video quality change encoding bit rate
             setVideoEncodingBitRate(10000000)
@@ -283,6 +289,8 @@ class VideoRecordingFragment : Fragment() {
             stopChronometer()
             releaseMediaRecorder() // release the MediaRecorder object
             previewSession()
+            videoRecordingViewModel._videoUri =  Uri.fromFile(File(videoFilePath))
+            playbackVideo.isClickable = true
             Toast.makeText(requireContext(), "Video captured Complete!", Toast.LENGTH_LONG).show()
             false
         } else {
@@ -290,6 +298,7 @@ class VideoRecordingFragment : Fragment() {
             recordSession()
             true
         }
+        videoRecordingViewModel.onChanged(isRecording)
 
     }
     /** [CameraCharacteristics] corresponding to the provided Camera ID */
@@ -341,7 +350,9 @@ class VideoRecordingFragment : Fragment() {
     }
     /**[AppCompatImageButton] to record the video*/
     private lateinit var captureButton: AppCompatImageButton
-    private lateinit var viewModel: VideoRecordingViewModel
+
+    /**[AppCompatImageButton] to record the video*/
+    private lateinit var playbackVideo: AppCompatImageButton
     /**[TextureView] is used to hold the video on the screen*/
     private lateinit var previewTextureView: TextureView
 
@@ -416,14 +427,22 @@ class VideoRecordingFragment : Fragment() {
 
         }
     }
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun startChronoMeter(){
         chronometer.base =  SystemClock.elapsedRealtime()
         chronometer.setTextColor(resources.getColor(android.R.color.holo_red_light, null))
         chronometer.start()
     }
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun stopChronometer(){
         chronometer.setTextColor(resources.getColor(android.R.color.white, null))
         chronometer.stop()
+    }
+    private fun replaceFragment(fragment: Fragment){
+        val transaction = requireActivity().supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.fragment_video_container, fragment)
+        transaction.addToBackStack(fragment::class.qualifiedName)
+        transaction.commit()
     }
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onResume() {
@@ -437,29 +456,38 @@ class VideoRecordingFragment : Fragment() {
         stopHandler()
         super.onPause()
     }
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view: View = inflater.inflate(R.layout.fragment_video_recording, container, false)
-//        viewModel = ViewModelProviders.of(this).get(VideoRecordingViewModel::class.java)
-//        videoRecordingViewModel.permissions.observe(requireActivity(), Observer {
-//            isRecording = it
-//        })
         previewTextureView = view.findViewById(R.id.previewTextureView)
         chronometer =  view.findViewById(R.id.chronometer1)
         captureButton = view.findViewById(R.id.camera_capture_button)
         captureButton.isClickable =true
+        playbackVideo =  view.findViewById(R.id.playback_video)
+        playbackVideo.isClickable = false
         cameraSwitchButton = view.findViewById<ImageButton>(R.id.camera_switch_button)
         captureButton.setOnClickListener {
             Log.d(TAG, "capture button clicked")
             startRecording()
+        }
+        playbackVideo.setOnClickListener {
+            val  videoPlaybackFragment =  VideoPlaybackFragment.newInstance()
+            replaceFragment(videoPlaybackFragment)
         }
         return view
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        videoRecordingViewModel._isRecording.observe(
+                viewLifecycleOwner,
+                Observer { it->
+                    isRecording = it
+                }
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -479,6 +507,7 @@ class VideoRecordingFragment : Fragment() {
      * NOTE: The flag is supported starting in Android 8 but there still is a small flash on the
      * screen for devices that run Android 9 or below.
      */
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         Log.d(TAG,"Configuration is changed please save the state");
