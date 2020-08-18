@@ -5,8 +5,9 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/camera_ui_container"
-        android:keepScreenOn="true">
+        android:id="@+id/video_recording_layout"
+        android:background="?android:windowBackground"
+        tools:context=".fragments.VideoRecordingFragment">
     <TextureView
             android:id="@+id/previewTextureView"
             android:layout_width="match_parent"

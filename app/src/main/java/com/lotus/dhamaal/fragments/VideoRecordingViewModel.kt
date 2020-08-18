@@ -7,9 +7,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 
 class VideoRecordingViewModel : ViewModel() {
-    private val _text = MutableLiveData<Boolean>().apply {
-        MutableLiveData<Boolean>()
-    }
+    private val _text = MutableLiveData<Boolean>()
     fun onChanged(value:Boolean){
           _text.value  = value;
     }

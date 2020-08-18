@@ -29,8 +29,8 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme.NoActionBar">
         <activity
+                android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
                 android:name=".activities.VideoRecording"
-                android:configChanges="orientation|keyboardHidden|screenSize"
                 android:screenOrientation="fullUser"
                 android:rotationAnimation="seamless"
                 android:label="@string/title_activity_video_recording"

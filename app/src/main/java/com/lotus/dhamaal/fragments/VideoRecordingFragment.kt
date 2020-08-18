@@ -12,15 +12,18 @@ import android.util.Log
 import android.util.SparseArray
 import android.view.*
 import android.widget.Chronometer
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.camera.core.CameraInfoUnavailableException
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import com.lotus.dhamaal.R
+import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -290,7 +293,7 @@ class VideoRecordingFragment : Fragment() {
             releaseMediaRecorder() // release the MediaRecorder object
             previewSession()
             videoRecordingViewModel._videoUri =  Uri.fromFile(File(videoFilePath))
-            playbackVideo.isClickable = true
+            playbackVideo.isEnabled = true
             Toast.makeText(requireContext(), "Video captured Complete!", Toast.LENGTH_LONG).show()
             false
         } else {
@@ -441,9 +444,14 @@ class VideoRecordingFragment : Fragment() {
     private fun replaceFragment(fragment: Fragment){
         val transaction = requireActivity().supportFragmentManager.beginTransaction()
         transaction.replace(R.id.fragment_video_container, fragment)
-//        transaction.addToBackStack(fragment::class.qualifiedName)
-        transaction.addToBackStack(null)
+        transaction.addToBackStack(fragment::class.qualifiedName)
+        transaction.setReorderingAllowed(true)
         transaction.commit()
+    }
+
+    override fun onDestroyView() {
+        val container =  requireActivity().findViewById<ConstraintLayout>(R.id.video_recording_layout)
+        super.onDestroyView()
     }
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onResume() {
@@ -468,15 +476,17 @@ class VideoRecordingFragment : Fragment() {
         captureButton = view.findViewById(R.id.camera_capture_button)
         captureButton.isClickable =true
         playbackVideo =  view.findViewById(R.id.process_video)
-        playbackVideo.isClickable = false
+        playbackVideo.isEnabled = false
         cameraSwitchButton = view.findViewById<ImageButton>(R.id.camera_switch_button)
         captureButton.setOnClickListener {
             Log.d(TAG, "capture button clicked")
             startRecording()
         }
         playbackVideo.setOnClickListener {
-            val  videoPlaybackFragment =  VideoPlaybackFragment.newInstance()
-            replaceFragment(videoPlaybackFragment)
+            if(playbackVideo.isEnabled) {
+                val videoPlaybackFragment = VideoPlaybackFragment.newInstance()
+                replaceFragment(videoPlaybackFragment)
+            }
         }
         return view
     }
