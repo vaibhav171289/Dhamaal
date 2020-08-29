@@ -14,5 +14,7 @@ class VideoRecordingViewModel : ViewModel() {
     var _isRecording: LiveData<Boolean> = _text
 
     var _videoUri: Uri? =null
-
+    var width: Int = 1080
+    var height: Int = 1920
+    var isSurfaceAvailable = false
 }

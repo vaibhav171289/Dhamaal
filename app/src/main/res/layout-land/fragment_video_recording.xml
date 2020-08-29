@@ -7,10 +7,20 @@
         android:keepScreenOn="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-    <TextureView
+    <!--<TextureView
             android:id="@+id/previewTextureView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent"/>-->
+    <com.lotus.dhamaal.utils.AutoFitSurfaceView
+            android:id="@+id/previewSurfaceView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+   <!-- <View
+            android:id="@+id/overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:foreground="@android:color/transparent" />-->
     <!-- Camera control and gallery buttons -->
     <ImageButton
             android:id="@+id/camera_switch_button"

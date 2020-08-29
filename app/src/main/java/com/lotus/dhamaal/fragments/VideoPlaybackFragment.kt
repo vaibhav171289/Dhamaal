@@ -2,6 +2,7 @@ package com.lotus.dhamaal.fragments
 
 import android.media.session.PlaybackState
 import android.net.Uri
+import android.opengl.Visibility
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -85,9 +86,17 @@ class VideoPlaybackFragment : Fragment() , PlayerControlView.VisibilityListener{
         playButton= view.findViewById(R.id.exo_play)
         pauseButton  = view.findViewById(R.id.exo_pause)
         playButton.setOnClickListener {
+            playButton.onVisibilityAggregated(false)
+            pauseButton.onVisibilityAggregated(false)
+            playButton.visibility = View.INVISIBLE
+            pauseButton.visibility =View.INVISIBLE
             playRecordedVideo()
         }
         pauseButton.setOnClickListener {
+            playButton.onVisibilityAggregated(false)
+            pauseButton.onVisibilityAggregated(false)
+            playButton.visibility = View.INVISIBLE
+            pauseButton.visibility =View.INVISIBLE
             pauseVideoPlayBack()
         }
         playerView.keepScreenOn = true

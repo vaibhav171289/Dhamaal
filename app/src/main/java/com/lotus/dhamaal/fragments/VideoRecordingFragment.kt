@@ -9,10 +9,10 @@ import android.media.MediaRecorder
 import android.net.Uri
 import android.os.*
 import android.util.Log
+import android.util.Size
 import android.util.SparseArray
 import android.view.*
 import android.widget.Chronometer
-import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -23,7 +23,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import com.lotus.dhamaal.R
-import kotlinx.android.synthetic.main.activity_main.*
+import com.lotus.dhamaal.utils.*
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -31,15 +31,10 @@ import java.util.*
 
 class VideoRecordingFragment : Fragment() {
     private  val videoRecordingViewModel: VideoRecordingViewModel by activityViewModels()
-    /*private val videoRecordingViewModel: VideoRecordingViewModel by lazy{
-        ViewModelProvider(this).get(VideoRecordingViewModel::class.java)
-    }*/
     companion object {
         private val TAG = VideoRecordingFragment::class.qualifiedName
         @JvmStatic fun newInstance() = VideoRecordingFragment()
         var isRecording: Boolean = false
-        private const val MAX_PREVIEW_WIDTH= 1920
-        private  const val MAX_PREVIEW_HEIGHT =  1080
         private const val SENSOR_DEFAULT_ORIENTATION_DEGREES = 90
         private const val SENSOR_INVERSE_ORIENTATION_DEGREES = 270
         private val DEFAULT_ORIENTATION = SparseArray<Int>().apply {
@@ -103,7 +98,7 @@ class VideoRecordingFragment : Fragment() {
             handlerThread.join()
         }catch (e: InterruptedException){
 
-            Log.e(TAG," exception in thread handler VideoRecording Fragment ${e.toString()}")
+            Log.e(TAG, " exception in thread handler VideoRecording Fragment ${e.toString()}")
         }
     }
 
@@ -129,7 +124,10 @@ class VideoRecordingFragment : Fragment() {
             addTarget(textureSurface)
             Log.d(TAG, "surface added to the target and tag ")
             set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
-            Log.d(TAG, " setting capture request: ${CaptureRequest.CONTROL_AF_MODE} and ${CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE}")
+            Log.d(
+                TAG,
+                " setting capture request: ${CaptureRequest.CONTROL_AF_MODE} and ${CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE}"
+            )
         }.build()
 
     }
@@ -141,7 +139,10 @@ class VideoRecordingFragment : Fragment() {
             addTarget(recorderSurface)
             Log.d(TAG, "2 surfaces are added to the target and tag ")
             set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
-            Log.d(TAG, " setting capture request: ${CaptureRequest.CONTROL_AF_MODE} and ${CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE}")
+            Log.d(
+                TAG,
+                " setting capture request: ${CaptureRequest.CONTROL_AF_MODE} and ${CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE}"
+            )
         }.build()
 
     }
@@ -149,52 +150,54 @@ class VideoRecordingFragment : Fragment() {
         Log.d(TAG, "Is surface valid:  ${textureSurface.isValid}")
         cameraDevice.createCaptureSession(
             listOf(textureSurface),
-            object:CameraCaptureSession.StateCallback(){
-                @RequiresApi(Build.VERSION_CODES.M)
+            object : CameraCaptureSession.StateCallback() {
+                @RequiresApi(Build.VERSION_CODES.Q)
                 override fun onConfigureFailed(session: CameraCaptureSession) {
-                    Log.e(TAG,"creating capture session failed\n${session.inputSurface}")
+                    Log.e(TAG, "creating capture session failed\n${session.inputSurface}")
                 }
 
-                @RequiresApi(Build.VERSION_CODES.M)
+                @RequiresApi(Build.VERSION_CODES.Q)
                 override fun onConfigured(session: CameraCaptureSession) {
 
-                    Log.d(TAG,"Capture session is configured successfully ${cameraDevice.id}")
+                    Log.d(TAG, "Capture session is configured successfully ${cameraDevice.id}")
                     session.let {
-                        cameraCaptureSession= it
-                        it.setRepeatingRequest( createPreviewCaptureRequest(),null, null)
+                        cameraCaptureSession = it
+                        it.setRepeatingRequest(createPreviewCaptureRequest(), null, null)
                     }
                 }
-            }, handler)
+            }, handler
+        )
     }
-    @RequiresApi(Build.VERSION_CODES.O)
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun recordSession(){
         mediaRecorder = MediaRecorder()
         prepareMediaRecorder()
         recorderSurface  =  mediaRecorder!!.surface
         val surfaces = listOf<Surface>(textureSurface, recorderSurface)
         Log.d(TAG, "Is Texture surface valid:  ${textureSurface.isValid}")
-        Log.d(TAG, "Is Recorder surface valid:  ${textureSurface.isValid}")
+        Log.d(TAG, "Is Recorder surface valid:  ${recorderSurface.isValid}")
         cameraDevice.createCaptureSession(
             surfaces,
-            object:CameraCaptureSession.StateCallback(){
-                @RequiresApi(Build.VERSION_CODES.M)
+            object : CameraCaptureSession.StateCallback() {
+                @RequiresApi(Build.VERSION_CODES.Q)
                 override fun onConfigureFailed(session: CameraCaptureSession) {
-                    Log.e(TAG,"creating record capture session failed\n${session.inputSurface}")
+                    Log.e(TAG, "creating record capture session failed\n${session.inputSurface}")
                     releaseMediaRecorder()
                 }
 
-                @RequiresApi(Build.VERSION_CODES.M)
+                @RequiresApi(Build.VERSION_CODES.Q)
                 override fun onConfigured(session: CameraCaptureSession) {
 
-                    Log.d(TAG,"Capture session is configured successfully ${cameraDevice.id}")
+                    Log.d(TAG, "Capture session is configured successfully ${cameraDevice.id}")
                     session.let {
-                        cameraCaptureSession= it
-                        it.setRepeatingRequest( createRecordCaptureRequest(),null, null)
+                        cameraCaptureSession = it
+                        it.setRepeatingRequest(createRecordCaptureRequest(), null, null)
                         isRecording = true
-                        Log.d(TAG,"++++++++++++++++++>starting media recorder")
+                        Log.d(TAG, "++++++++++++++++++>starting media recorder")
                     }
                 }
-            }, handler)
+            }, handler
+        )
     }
     private fun closeCamera(){
         if(this::cameraCaptureSession.isInitialized)
@@ -203,24 +206,28 @@ class VideoRecordingFragment : Fragment() {
             cameraDevice.close()
     }
     private val deviceStateCallBack = object: CameraDevice.StateCallback(){
-        @RequiresApi(Build.VERSION_CODES.O)
+        @RequiresApi(Build.VERSION_CODES.Q)
         override fun onOpened(camera: CameraDevice) {
-            Log.d(TAG,"Camera device is ready to use")
+            Log.d(TAG, "Camera device is ready to use")
             camera.let {
                 cameraDevice = camera
-                Log.d(TAG,"Camera device is ready to use : ${cameraDevice.id}")
+                Log.d(TAG, "Camera device is ready to use : ${cameraDevice.id}")
                previewSession()
+                mPreviewSize?.let { it1 ->
+                    configureTransform(requireActivity(),
+                        it1, surfaceView, surfaceView.width, surfaceView.height)
+                }
             }
         }
 
         override fun onDisconnected(camera: CameraDevice) {
-            Log.d(TAG,"Camera device is disconnected")
+            Log.d(TAG, "Camera device is disconnected")
             camera.close()
         }
 
         override fun onError(camera: CameraDevice, error: Int) {
 
-            Log.d(TAG,"Camera device OnError")
+            Log.d(TAG, "Camera device OnError")
             requireActivity().finish()
             val msg = when(error) {
                 ERROR_CAMERA_DEVICE -> "Fatal (device)"
@@ -243,17 +250,17 @@ class VideoRecordingFragment : Fragment() {
                 reset()
                 release()
                 mediaRecorder = null
-                Log.d(TAG,"++++++++++++++++++>stopping media recorder")
+                Log.d(TAG, "++++++++++++++++++>stopping media recorder")
             }
         }catch (e: IllegalStateException){
-            Log.e(TAG,"release media recorder ${Log.getStackTraceString(e)}}")
-        }catch(e: java.lang.RuntimeException){
-            Log.e(TAG,"runtime media recorder ")
+            Log.e(TAG, "release media recorder ${Log.getStackTraceString(e)}}")
+        }catch (e: java.lang.RuntimeException){
+            Log.e(TAG, "runtime media recorder ")
             Log.e(TAG, Log.getStackTraceString(e))
 //            e.stackTrace.asList().forEach { Log.d(TAG, it.toString()); }
         }
     }
-    @RequiresApi(Build.VERSION_CODES.O)
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun prepareMediaRecorder(){
         val rotation = requireActivity().windowManager.defaultDisplay.rotation
         try {
@@ -262,20 +269,20 @@ class VideoRecordingFragment : Fragment() {
                 SENSOR_INVERSE_ORIENTATION_DEGREES -> mediaRecorder?.setOrientationHint(INVERSE_ORIENTATION.get(rotation))
             }
         }catch (e: java.lang.IllegalStateException){
-            Log.d(TAG,"Sensor orientation : $e")
+            Log.d(TAG, "Sensor orientation : $e")
         }
 
         mediaRecorder?.apply {
             setVideoSource(MediaRecorder.VideoSource.SURFACE)
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
                setOutputFile(createVideoFile())
             setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
             //if poor video quality change encoding bit rate
             setVideoEncodingBitRate(10000000)
             setVideoFrameRate(30)
-            setVideoSize(MAX_PREVIEW_WIDTH, MAX_PREVIEW_HEIGHT)
+            setVideoSize(videoRecordingViewModel.width, videoRecordingViewModel.height)
             setVideoEncoder(MediaRecorder.VideoEncoder.H264)
             try {
                 prepare()
@@ -285,7 +292,7 @@ class VideoRecordingFragment : Fragment() {
             start()
         }
     }
-    @RequiresApi(Build.VERSION_CODES.O)
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun startRecording() {
         Log.d(TAG, " is recording started $isRecording")
         isRecording = if (isRecording) {
@@ -320,36 +327,75 @@ class VideoRecordingFragment : Fragment() {
         var deviceId = listOf<String>()
         try{
             val cameraList  = cameraManager.cameraIdList
-            Log.d(TAG,"Camera id list-> ${cameraList.asList()}")
-            deviceId = cameraList.filter { lens == cameraCharacteristics(it,CameraCharacteristics.LENS_FACING )}
-        }catch(e: CameraAccessException){
-            Log.e(TAG," Unable to locate a camera device\n${e.toString()}")
+            Log.d(TAG, "Camera id list-> ${cameraList.asList()}")
+            deviceId = cameraList.filter { lens == cameraCharacteristics(it, CameraCharacteristics.LENS_FACING)}
+        }catch (e: CameraAccessException){
+            Log.e(TAG, " Unable to locate a camera device\n${e.toString()}")
         }
         return deviceId[0]
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
+    /**
+     * The [Size] of camera preview.
+     */
+    private var mPreviewSize: Size? = null
+
+    /**
+     * The [Size] of video recording.
+     */
+    private var mVideoSize: Size? = null
+    @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("MissingPermission")
-    private  fun connectCamera(){
+    private  fun connectCamera(width1: Int, height1: Int) {
         /*Initialize surface before using it*/
-        previewTextureView.surfaceTexture.apply {
+        /*previewTextureView.surfaceTexture.apply {
             setDefaultBufferSize(MAX_PREVIEW_WIDTH, MAX_PREVIEW_HEIGHT)
         }
-        textureSurface = Surface(previewTextureView.surfaceTexture)
+        textureSurface = Surface(previewTextureView.surfaceTexture)*/
+      /*  val characteristics: CameraCharacteristics = cameraManager.getCameraCharacteristics(lensCurrentFacing.toString())
+        val map = characteristics
+            .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+//        mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION)
+        mVideoSize = chooseVideoSize(
+            map!!.getOutputSizes(
+                MediaRecorder::class.java
+            )
+        )
+        mPreviewSize = chooseOptimalSize(
+            map.getOutputSizes(
+                SurfaceTexture::class.java
+            ),
+            width1, height1, mVideoSize!!
+        )
+
+        val orientation = resources.configuration.orientation
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            surfaceView.setAspectRatio(mPreviewSize!!.width, mPreviewSize!!.height)
+        } else {
+            surfaceView.setAspectRatio(mPreviewSize!!.height, mPreviewSize!!.width)
+        }
+        videoRecordingViewModel.width = mPreviewSize!!.width
+        videoRecordingViewModel.height = mPreviewSize!!.height*/
+        videoRecordingViewModel.width = width1
+        videoRecordingViewModel.height = height1
+        /*surfaceView.layoutParams.apply {
+            height = MAX_PREVIEW_HEIGHT
+            width = MAX_PREVIEW_WIDTH
+        }*/
+        textureSurface = Surface(surfaceView.surfaceControl)
         updateCameraSwitchButton()
         updateCameraUi()
-         val cameraId =  cameraId(lensCurrentFacing)
+        val cameraId =  cameraId(lensCurrentFacing)
         Log.d(TAG, "Current camera id for lens $cameraId")
         try {
-            Log.d(TAG,"handler is alive: ${handler}")
+            Log.d(TAG, "handler is alive: ${handler}")
             cameraManager.openCamera(cameraId, deviceStateCallBack, handler)
         }
         catch (e: CameraAccessException){
             Log.e(TAG, e.toString())
         }catch (e: InterruptedException){
-            Log.e(TAG," Interrupted While opening the Camera device Id: $cameraId  ${e.toString()}")
+            Log.e(TAG, " Interrupted While opening the Camera device Id: $cameraId  ${e.toString()}")
         }
-
     }
     /**[AppCompatImageButton] to record the video*/
     private lateinit var captureButton: AppCompatImageButton
@@ -373,14 +419,43 @@ class VideoRecordingFragment : Fragment() {
             return true
         }
 
-        @RequiresApi(Build.VERSION_CODES.M)
+        @RequiresApi(Build.VERSION_CODES.Q)
         override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
           Log.d(TAG, "surface texture view is available width: $width and  height $height")
-            connectCamera()
+            connectCamera(width, height)
 
         }
 
     }
+    private lateinit var surfaceView: AutoFitSurfaceView
+    private lateinit var surfaceHolder: SurfaceHolder
+    /** Overlay on top of the camera preview */
+    private lateinit var overlay: View
+
+    private val surfaceHolderCallback = object : SurfaceHolder.Callback{
+        @RequiresApi(Build.VERSION_CODES.Q)
+        override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) = Unit
+
+        override fun surfaceDestroyed(holder: SurfaceHolder?) {
+            releaseMediaRecorder()
+            closeCamera()
+        }
+
+        @RequiresApi(Build.VERSION_CODES.Q)
+        override fun surfaceCreated(holder: SurfaceHolder?) {
+            Log.d(TAG, "surface holder created")
+            val cameraCharacteristics = cameraManager.getCameraCharacteristics(lensCurrentFacing.toString())
+            val previewSize = getPreviewOutputSize(
+                surfaceView.display, cameraCharacteristics, SurfaceHolder::class.java)
+            Log.d(TAG, "Surface view display size: ${surfaceView.width} x ${surfaceView.height}")
+            surfaceView.setAspectRatio(previewSize.width, previewSize.height)
+
+            // To ensure that size is set, initialize camera in the view's thread
+            view?.post { connectCamera(surfaceView.width, surfaceView.height) }
+        }
+
+    }
+
     /** Returns true if the device has an available back camera. False otherwise */
     private fun hasBackCamera(): Boolean {
         return cameraManager.cameraIdList.contains(CameraCharacteristics.LENS_FACING_BACK.toString())
@@ -401,7 +476,7 @@ class VideoRecordingFragment : Fragment() {
         }
     }
     /** Method used to re-draw the camera UI controls, called every time configuration changes. */
-    @RequiresApi(Build.VERSION_CODES.M)
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun updateCameraUi() {
         // Setup for button used to switch cameras
         cameraSwitchButton.let {
@@ -420,23 +495,31 @@ class VideoRecordingFragment : Fragment() {
             }
         }
     }
-    @RequiresApi(Build.VERSION_CODES.M)
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun setPreviewTextureView(){
-        Log.d(TAG,"on resume Texture view is avaialble : ${previewTextureView.isAvailable}")
+       /* Log.d(TAG,"on resume Texture view is avaialble : ${previewTextureView.isAvailable}")
         if(previewTextureView.isAvailable){
             connectCamera()
         }else {
             previewTextureView.surfaceTextureListener = surfaceListener
 
+        }*/
+        Log.d(TAG, "on resume Texture view is avaialble : ${surfaceHolder.surface.isValid}")
+        if(videoRecordingViewModel.isSurfaceAvailable  && surfaceHolder.surface.isValid){
+            connectCamera(videoRecordingViewModel.width, videoRecordingViewModel.height)
+        }else {
+            videoRecordingViewModel.isSurfaceAvailable = true;
+            surfaceHolder =  surfaceView.holder
+            surfaceHolder.addCallback(surfaceHolderCallback)
         }
     }
-    @RequiresApi(Build.VERSION_CODES.M)
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun startChronoMeter(){
         chronometer.base =  SystemClock.elapsedRealtime()
         chronometer.setTextColor(resources.getColor(android.R.color.holo_red_light, null))
         chronometer.start()
     }
-    @RequiresApi(Build.VERSION_CODES.M)
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun stopChronometer(){
         chronometer.setTextColor(resources.getColor(android.R.color.white, null))
         chronometer.stop()
@@ -453,7 +536,7 @@ class VideoRecordingFragment : Fragment() {
         val container =  requireActivity().findViewById<ConstraintLayout>(R.id.video_recording_layout)
         super.onDestroyView()
     }
-    @RequiresApi(Build.VERSION_CODES.M)
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onResume() {
         super.onResume()
         startHandler()
@@ -465,13 +548,36 @@ class VideoRecordingFragment : Fragment() {
         stopHandler()
         super.onPause()
     }
-    @RequiresApi(Build.VERSION_CODES.O)
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view: View = inflater.inflate(R.layout.fragment_video_recording, container, false)
-        previewTextureView = view.findViewById(R.id.previewTextureView)
+        return inflater.inflate(R.layout.fragment_video_recording, container, false)
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        videoRecordingViewModel._isRecording.observe(
+            viewLifecycleOwner,
+            Observer { it ->
+                isRecording = it
+            }
+        )
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or
+         View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+
+//        previewTextureView = view.findViewById(R.id.previewTextureView)
+        overlay = view.findViewById(R.id.overlay)
+        surfaceView =  view.findViewById(R.id.previewSurfaceView)
+        surfaceHolder =  surfaceView.holder!!
+        surfaceHolder.addCallback(surfaceHolderCallback)
         chronometer =  view.findViewById(R.id.chronometer1)
         captureButton = view.findViewById(R.id.camera_capture_button)
         captureButton.isClickable =true
@@ -488,25 +594,6 @@ class VideoRecordingFragment : Fragment() {
                 replaceFragment(videoPlaybackFragment)
             }
         }
-        return view
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        videoRecordingViewModel._isRecording.observe(
-                viewLifecycleOwner,
-                Observer { it->
-                    isRecording = it
-                }
-        )
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or
-         View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
     }
 
 
@@ -518,10 +605,10 @@ class VideoRecordingFragment : Fragment() {
      * NOTE: The flag is supported starting in Android 8 but there still is a small flash on the
      * screen for devices that run Android 9 or below.
      */
-    @RequiresApi(Build.VERSION_CODES.M)
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        Log.d(TAG,"Configuration is changed please save the state");
+        Log.d(TAG, "Configuration is changed please save the state");
         // Redraw the camera UI controls
         updateCameraUi()
 
