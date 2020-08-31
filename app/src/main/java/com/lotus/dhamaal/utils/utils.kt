@@ -3,7 +3,6 @@ package com.lotus.dhamaal.utils
 import android.app.Activity
 import android.graphics.Matrix
 import android.graphics.Point
-import android.graphics.Rect
 import android.graphics.RectF
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.params.StreamConfigurationMap
@@ -19,7 +18,7 @@ import kotlin.collections.ArrayList
 import kotlin.math.max
 import kotlin.math.min
 
-private  val TAG = "UTILS"
+private const  val TAG = "UTILS"
 /** Combination of all flags required to put activity into immersive mode */
 const val FLAGS_FULLSCREEN =
     View.SYSTEM_UI_FLAG_LOW_PROFILE or
@@ -160,7 +159,7 @@ internal class CompareSizesByArea : Comparator<Size> {
  * @param viewWidth  The width of `mTextureView`
  * @param viewHeight The height of `mTextureView`
  */
-fun configureTransform(activity: Activity, mPreviewSize: Size, surfaceView: AutoFitSurfaceView ,viewWidth: Int, viewHeight: Int) {
+fun configureTransform(activity: Activity, mPreviewSize: Size, textureView: AutoFitTextureView ,viewWidth: Int, viewHeight: Int) {
     val rotation = activity.windowManager.defaultDisplay.rotation
     val matrix = Matrix()
     val viewRectF = RectF(0F, 0F, viewWidth.toFloat(), viewHeight.toFloat())
@@ -170,15 +169,12 @@ fun configureTransform(activity: Activity, mPreviewSize: Size, surfaceView: Auto
     if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
         bufferRectF.offset(centerX - bufferRectF.centerX(), centerY - bufferRectF.centerY())
         matrix.setRectToRect(viewRectF, bufferRectF, Matrix.ScaleToFit.FILL)
-        val scale: Float = Math.max(
-            viewHeight.toFloat() / mPreviewSize.height,
-            viewWidth.toFloat() / mPreviewSize.width
-        )
+        val scale: Float =
+            (viewHeight.toFloat() / mPreviewSize.height).coerceAtLeast(viewWidth.toFloat() / mPreviewSize.width)
         matrix.postScale(scale, scale, centerX, centerY)
         matrix.postRotate(90 * (rotation - 2).toFloat(), centerX, centerY)
     }
-    val viewRect = Rect(0, 0, viewWidth, viewHeight)
-    surfaceView.holder.surfaceFrame.set(viewRect)
+    textureView.setTransform(matrix)
 }
 /** Helper class used to pre-compute shortest and longest sides of a [Size] */
 class SmartSize(width: Int, height: Int) {

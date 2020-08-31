@@ -2,7 +2,6 @@ package com.lotus.dhamaal.fragments
 
 import android.media.session.PlaybackState
 import android.net.Uri
-import android.opengl.Visibility
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -16,7 +15,6 @@ import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.ui.PlayerControlView
 import com.google.android.exoplayer2.ui.PlayerView
-import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import com.lotus.dhamaal.R
@@ -28,8 +26,6 @@ class VideoPlaybackFragment : Fragment() , PlayerControlView.VisibilityListener{
         private val TAG = VideoPlaybackFragment::class.qualifiedName
         fun newInstance() = VideoPlaybackFragment()
     }
-
-    private val bandwidthMeter by lazy { DefaultBandwidthMeter.Builder(requireContext()) }
 
     //    private  val trackSelectionFactory by lazy { AdaptiveTrackSelection.Factory(bandwidthMeter) }
     private val exoPlayer by lazy {
@@ -70,9 +66,6 @@ class VideoPlaybackFragment : Fragment() , PlayerControlView.VisibilityListener{
         playbackState = exoPlayer.playbackState
     }
     private lateinit var uri: Uri
-    private var play_pause: ImageButton? = null
-    private var isPlaying: Boolean = false
-    private lateinit var playerControlView: PlayerControlView
     private lateinit var playerView: PlayerView
     private lateinit var playButton: ImageButton
     private lateinit var pauseButton: ImageButton
@@ -120,8 +113,8 @@ class VideoPlaybackFragment : Fragment() , PlayerControlView.VisibilityListener{
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        Log.d(TAG, "video uri ${videoRecordingViewModel._videoUri}")
-        uri = videoRecordingViewModel._videoUri!!
+        Log.d(TAG, "video uri ${videoRecordingViewModel.videoUri}")
+        uri = videoRecordingViewModel.videoUri!!
     }
 
     override fun onVisibilityChange(visibility: Int) {

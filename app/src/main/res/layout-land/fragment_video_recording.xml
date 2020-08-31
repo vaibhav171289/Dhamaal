@@ -7,12 +7,9 @@
         android:keepScreenOn="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-    <!--<TextureView
+
+    <com.lotus.dhamaal.utils.AutoFitTextureView
             android:id="@+id/previewTextureView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>-->
-    <com.lotus.dhamaal.utils.AutoFitSurfaceView
-            android:id="@+id/previewSurfaceView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 

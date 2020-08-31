@@ -3,19 +3,19 @@ package com.lotus.dhamaal.utils
 import android.content.Context
 import android.util.AttributeSet
 import android.util.Log
-import android.util.Size
 import android.view.SurfaceView
+import android.view.TextureView
 import kotlin.math.roundToInt
 
 /**
  * A [SurfaceView] that can be adjusted to a specified aspect ratio and
  * performs center-crop transformation of input frames.
  */
-class AutoFitSurfaceView @JvmOverloads constructor(
+class AutoFitTextureView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0
-) : SurfaceView(context, attrs, defStyle) {
+) : TextureView(context, attrs, defStyle) {
 
     private var aspectRatio = 0f
 
@@ -29,7 +29,6 @@ class AutoFitSurfaceView @JvmOverloads constructor(
     fun setAspectRatio(width: Int, height: Int) {
         require(width > 0 && height > 0) { "Size cannot be negative" }
         aspectRatio = width.toFloat() / height.toFloat()
-        holder.setFixedSize(width, height)
         requestLayout()
     }
 
@@ -60,6 +59,6 @@ class AutoFitSurfaceView @JvmOverloads constructor(
     }
 
     companion object {
-        private val TAG = AutoFitSurfaceView::class.java.simpleName
+        private val TAG = AutoFitTextureView::class.java.simpleName
     }
 }
