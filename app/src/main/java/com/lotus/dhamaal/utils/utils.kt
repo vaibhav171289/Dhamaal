@@ -170,7 +170,7 @@ fun configureTransform(activity: Activity, mPreviewSize: Size, textureView: Auto
         bufferRectF.offset(centerX - bufferRectF.centerX(), centerY - bufferRectF.centerY())
         matrix.setRectToRect(viewRectF, bufferRectF, Matrix.ScaleToFit.FILL)
         val scale: Float =
-            (viewHeight.toFloat() / mPreviewSize.height).coerceAtLeast(viewWidth.toFloat() / mPreviewSize.width)
+            Math.max(viewHeight.toFloat() / mPreviewSize.height , viewWidth.toFloat() / mPreviewSize.width)
         matrix.postScale(scale, scale, centerX, centerY)
         matrix.postRotate(90 * (rotation - 2).toFloat(), centerX, centerY)
     }

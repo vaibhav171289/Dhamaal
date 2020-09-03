@@ -13,6 +13,6 @@ class VideoRecordingViewModel : ViewModel() {
     var isRecording: LiveData<Boolean> = _text
 
     var videoUri: Uri? =null
-    var width: Int = 1080
-    var height: Int = 1920
+    var width: Int = 1920
+    var height: Int = 1080
 }

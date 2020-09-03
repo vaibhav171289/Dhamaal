@@ -29,6 +29,7 @@ class AutoFitTextureView @JvmOverloads constructor(
     fun setAspectRatio(width: Int, height: Int) {
         require(width > 0 && height > 0) { "Size cannot be negative" }
         aspectRatio = width.toFloat() / height.toFloat()
+        Log.d(TAG, "Aspect ratio : $aspectRatio")
         requestLayout()
     }
 
