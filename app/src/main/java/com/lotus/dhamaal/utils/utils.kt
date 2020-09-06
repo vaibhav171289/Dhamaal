@@ -96,11 +96,13 @@ fun AlertDialog.showImmersive() {
 fun chooseVideoSize(choices: Array<Size>): Size {
     for (size in choices) {
         if (1920 == size.width && 1080 == size.height) {
+            Log.d(TAG, "Returning size: as ${size.width}x${size.height}")
             return size
         }
     }
     for (size in choices) {
-        if (size.width == size.height * 4 / 3 && size.width <= 1080) {
+        if (size.width == size.height * 16 / 9 && size.width <= 1080) {
+            Log.d(TAG, "Returning size: as ${size.width}x${size.height}")
             return size
         }
     }
@@ -128,7 +130,7 @@ fun chooseVideoSize(choices: Array<Size>): Size {
             bigEnough.add(option)
         }
     }
-
+    Log.d(TAG,"Big enough for preview size: ${bigEnough.toList()}")
     // Pick the smallest of those, assuming we found any
     return if (bigEnough.size > 0) {
         Collections.min(bigEnough, CompareSizesByArea())

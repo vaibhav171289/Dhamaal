@@ -23,7 +23,6 @@ class VideoRecording : AppCompatActivity() {
         setContentView(R.layout.activity_video_recording)
         container = findViewById(R.id.fragment_video_container)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        Log.i(TAG, "Video Recording activity started")
         val transaction = supportFragmentManager.beginTransaction()
         transaction.add(R.id.fragment_video_container, permissionFragment)
         transaction.addToBackStack(null)

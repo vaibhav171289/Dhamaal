@@ -15,4 +15,8 @@ class VideoRecordingViewModel : ViewModel() {
     var videoUri: Uri? =null
     var width: Int = 1920
     var height: Int = 1080
+    fun updateWindow(w: Int, h: Int){
+        width  =w
+        height = h
+    }
 }
